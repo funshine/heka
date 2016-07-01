@@ -19,7 +19,7 @@ if(INCLUDE_SANDBOX)
     externalproject_add(
         ${SANDBOX_PACKAGE}
         GIT_REPOSITORY https://github.com/mozilla-services/lua_sandbox.git
-        GIT_TAG 4bf74cc480c2306fcffe1e423186e115cc87222d
+        GIT_TAG 97331863d3e05d25131b786e3e9199e805b9b4ba
         CMAKE_ARGS ${SANDBOX_ARGS}
         INSTALL_DIR ${PROJECT_PATH}
     )
@@ -175,7 +175,7 @@ if (INCLUDE_GEOIP)
 endif()
 
 if (INCLUDE_DOCKER_PLUGINS)
-    git_clone(https://github.com/carlanton/go-dockerclient d408f209d5946d86da69382b3eb0a6faac7b3885)
+    git_clone(https://github.com/fsouza/go-dockerclient 175e1df973274f04e9b459a62cffc49808f1a649)
 endif()
 
 if (INCLUDE_MOZSVC)
