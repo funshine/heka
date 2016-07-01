@@ -1,5 +1,5 @@
 [hekad]
-maxprocs = 4
+maxprocs = 2
 base_dir = "."
 share_dir = "../share/heka"
 
