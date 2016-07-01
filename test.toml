@@ -1,0 +1,89 @@
+[hekad]
+maxprocs = 4
+base_dir = "."
+share_dir = "../share/heka"
+
+[hello_decoder]
+type = "PayloadRegexDecoder"
+match_regex = "(?P<Message>.*)"
+
+[daq_decoder]
+type = "DaqDecoder"
+[daq_decoder.frames.power]
+frame_type = 2
+frame_patern = [
+	[ "pv", "u2" ],
+	[ "pi", "u2" ],
+	[ "nv", "u2" ],
+	[ "ni", "u2" ],
+]
+[daq_decoder.frames.fog]
+frame_type = 1
+frame_patern = [
+	[ "idx", "u1"],
+	[ "data", "i4"],
+	[ "t1", "u1"],
+	[ "t2", "u1"],
+	[ "st", "u1"],
+]
+
+[PayloadEncoder]
+append_newlines = false
+prefix_ts = true
+
+[HexPayloadEncoder]
+
+[InfluxdbLineEncoder]
+type = "SandboxEncoder"
+filename = "lua_encoders/schema_influx_line.lua"
+
+    [InfluxdbLineEncoder.config]
+    skip_fields = "Payload Pid Severity Hostname EnvVersion"
+    tag_fields = "Type Logger"
+    timestamp_precision= "ms"
+    name_prefix = "daq"
+    name_prefix_delimiter = "_"
+
+# [split_on_header]
+# type = "RegexSplitter"
+# delimiter = '579;=\?(?P<Message>.*)'
+# delimiter_eol = false
+[split_on_header]
+type = "ArraySplitter"
+frame_header = [165, 167, 169, 171, 173, 175]
+# [0xA5, 0xA7, 0xA9, 0xAB, 0xAD, 0xAF]
+index_count = 2
+index_order = "big"
+length_count = 2
+length_order = "big"
+checksum_count = 4
+
+[TcpInput]
+address = ":5565"
+net = "tcp"
+splitter = "split_on_header"
+decoder = "daq_decoder"
+
+[UdpInput]
+address = ":5555"
+net = "udp"
+
+[LogOutput]
+message_matcher = "Logger == 'TcpInput'"
+# message_matcher = "FALSE"
+# encoder = "HexPayloadEncoder"
+encoder = "InfluxdbLineEncoder"
+
+[InfluxdbOutput]
+type = "HttpOutput"
+message_matcher = "Logger == 'TcpInput'"
+encoder = "InfluxdbLineEncoder"
+address = "http://10.0.0.127:8086/write?db=daqdb&precision=ms"
+username = "heka"
+password = "heka"
+#use default :8083 to admin influxdb and create user
+
+[DashboardOutput]
+ticker_interval = 5
+working_directory = "./dashboard"
+address = "0.0.0.0:8080"
